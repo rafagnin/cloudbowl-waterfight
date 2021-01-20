@@ -6,7 +6,8 @@ app.use(bodyParser.json());
 
 app.post('/', function (req, res) {
   console.log(req.body);
-  const moves = ['T', 'F', 'T', 'L', 'T', 'R', 'T'];
+  //const moves = ['T', 'F', 'T', 'L', 'T', 'R', 'T'];
+  const moves = ['T'];
   res.send(moves[Math.floor(Math.random() * moves.length)]);
 });
 
