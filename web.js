@@ -10,11 +10,17 @@ const actionFoward = "F";
 const actionLeft = "L";
 const actionRight = "R";
 
+const maxConsecutiveThrows = 10;
+let consecutiveThrows = 0;
+
 app.post('/', async (req, res) => {
   const body = req.body;
   // console.log(body);
 
-  if (checkThrow(body)) return res.send(actionThrow);
+  if (checkThrow(body)) {
+    if (consecutiveThrows++ <= maxConsecutiveThrows) return res.send(actionThrow);
+  }
+  consecutiveThrows = 0;
   return res.send(findBestAction(body));
 });
 
