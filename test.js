@@ -87,6 +87,22 @@ describe('Throw Tests', () => {
         expect(res.status).toBe(200);
         expect(res.text).not.toBe("T");
     });
+    it('throw east 2', async () => {
+        const res = await request.post('/').send({
+            "test": "throw east 2",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [9,6], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 1, "y": 1, "direction": "E"},
+                    "https://A_PLAYERS_URL": { "x": 4, "y": 1},
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("T");
+    });
 });
 
 describe('Move Tests', () => {

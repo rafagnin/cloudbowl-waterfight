@@ -27,15 +27,13 @@ function checkThrow(body) {
   let throwX = self.x, 
       throwY = self.y;
   let limitLeft = self.x-maxHitDistance < 0 ? self.x-maxHitDistance : 0,
-      limitRight = self.x+maxHitDistance < body.arena.dims[0] ? self.x-maxHitDistance : body.arena.dims[0], 
+      limitRight = self.x+maxHitDistance < body.arena.dims[0] ? self.x+maxHitDistance : body.arena.dims[0], 
       limitTop = self.y-maxHitDistance < 0 ? self.y-maxHitDistance : 0, 
-      limitBottom = self.y+maxHitDistance < body.arena.dims[1] ? self.y-maxHitDistance : body.arena.dims[1];
+      limitBottom = self.y+maxHitDistance < body.arena.dims[1] ? self.y+maxHitDistance : body.arena.dims[1];
 
   for (const url in rows) {
     if (url == selfUrl) continue;
     let row = rows[url];
-    console.log(body, selfUrl, self, row);
-    
 
     let hitX = row.x, 
         hitY = row.y;
