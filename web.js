@@ -9,9 +9,11 @@ const actionThrow = "T";
 const actionFoward = "F";
 const actionLeft = "L";
 const actionRight = "R";
+const moves = [actionFoward, actionLeft, actionRight];
 
 const maxConsecutiveThrows = 10;
 let consecutiveThrows = 0;
+let lastMove = "";
 
 app.post('/', async (req, res) => {
   const body = req.body;
@@ -95,8 +97,11 @@ function findBestAction(body) {
 
   //chase highest score player
 
-  const moves = [actionFoward, actionLeft, actionRight];
-  return moves[Math.floor(Math.random() * moves.length)];
+  //avoid spinning left/right
+
+  const nextMove = moves[Math.floor(Math.random() * moves.length)];
+  if (lastMove == actionLeft && nextMove == actionRight || lastMove == actionRight && nextMove == actionLeft) nextMove = actionFoward;
+  return lastMove = nextMove;
 }
 
 app.listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", () => {
