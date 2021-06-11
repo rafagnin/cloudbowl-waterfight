@@ -23,27 +23,31 @@ function checkThrow(body) {
   const selfUrl = body._links.self.href;
   const rows = body.arena.state;
   const self = rows[selfUrl];
+
   let throwX = self.x, 
       throwY = self.y;
-  let limitLeft = self.x-maxHitDistance, 
-      limitRight = self.x+maxHitDistance, 
-      limitTop = self.y-maxHitDistance, 
-      limitBottom = self.y+maxHitDistance;
+  let limitLeft = self.x-maxHitDistance < 0 ? self.x-maxHitDistance : 0,
+      limitRight = self.x+maxHitDistance < body.arena.dims[0] ? self.x-maxHitDistance : body.arena.dims[0], 
+      limitTop = self.y-maxHitDistance < 0 ? self.y-maxHitDistance : 0, 
+      limitBottom = self.y+maxHitDistance < body.arena.dims[1] ? self.y-maxHitDistance : body.arena.dims[1];
 
   for (const url in rows) {
     if (url == selfUrl) continue;
     let row = rows[url];
+    console.log(body, selfUrl, self, row);
+    
+
     let hitX = row.x, 
         hitY = row.y;
     switch (self.direction) {
       //facing north, same column, player above
-      case "N": if (hitX == throwX && hitY >= limitTop && hitY <= throwY) return true;
+      case "N": if (hitX == throwX && hitY >= limitTop && hitY <= throwY) return true; break;
       //facing south, same column, player below
-      case "S": if (hitX == throwX && hitY >= throwY && hitY <= limitBottom) return true;
+      case "S": if (hitX == throwX && hitY >= throwY && hitY <= limitBottom) return true; break;
       //facing west, same row, player left
-      case "W": if (hitY == throwY && hitX >= limitLeft && hitX <= throwX) return true;
+      case "W": if (hitY == throwY && hitX >= limitLeft && hitX <= throwX) return true; break;
       //facing east, same row, player right
-      case "E": if (hitY == throwY && hitX >= throwX && hitX <= limitRight) return true;
+      case "E": if (hitY == throwY && hitX >= throwX && hitX <= limitRight) return true; break;
     }
   }
   return false;
@@ -68,13 +72,13 @@ function checkEscape(body) {
         limitBottom = row.y+maxHitDistance;
     switch (row.direction) {
       //facing north, same column, player below
-      case "N": if (hitX == throwX && hitY >= limitTop && hitY <= throwY) return true;
+      case "N": if (hitX == throwX && hitY >= limitTop && hitY <= throwY) return true; break;
       //facing south, same column, player above
-      case "S": if (hitX == throwX && hitY >= throwY && hitY <= limitBottom) return true;
+      case "S": if (hitX == throwX && hitY >= throwY && hitY <= limitBottom) return true; break;
       //facing west, same row, player right
-      case "W": if (hitY == throwY && hitX >= limitLeft && hitX <= throwX) return true;
+      case "W": if (hitY == throwY && hitX >= limitLeft && hitX <= throwX) return true; break;
       //facing east, same row, player left
-      case "E": if (hitY == throwY && hitX >= throwX && hitX <= limitRight) return true;
+      case "E": if (hitY == throwY && hitX >= throwX && hitX <= limitRight) return true; break;
     }
   }
   return false;
