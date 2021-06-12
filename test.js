@@ -95,7 +95,7 @@ describe('Throw Tests', () => {
                 "dims": [9,6], // width, height
                 "state": {
                     "https://MY_URL": { "x": 1, "y": 1, "direction": "E"},
-                    "https://A_PLAYERS_URL": { "x": 4, "y": 1},
+                    "https://A_PLAYERS_URL": { "x": 3, "y": 1},
                 }
             }
         });

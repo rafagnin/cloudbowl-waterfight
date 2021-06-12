@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-const maxHitDistance = 3;
+const maxHitDistance = 2;
 const actionThrow = "T";
 const actionFoward = "F";
 const actionLeft = "L";
@@ -121,7 +121,7 @@ function findClosest(body, deep = 0) {
   const self = rows[selfUrl];
 
   let secondOption = false;
-  let cloned = Object.assign({}, body);
+  let cloned = JSON.parse(JSON.stringify(body));
 
   //check forward
   let nextDirection = self.direction,
