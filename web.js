@@ -6,49 +6,66 @@ app.use(bodyParser.json());
 
 const maxHitDistance = 2;
 const actionThrow = "T";
-const actionFoward = "F";
+const actionForward = "F";
 const actionLeft = "L";
 const actionRight = "R";
-const moves = [actionFoward, actionLeft, actionRight];
+const moves = [actionForward, actionLeft, actionRight];
 
 const maxConsecutiveThrows = 5;
 let consecutiveThrows = 0;
 let lastMove = "";
 let lastPlayer = "";
+let nextMove;
 
 app.post('/', async (req, res) => {
   const body = req.body;
   // console.log(body);
 
+  const self = body.arena.state[body._links.self.href];
+
   if (player = checkThrow(body)) {
     //stop bulling
-    if (player != lastPlayer || consecutiveThrows++ < maxConsecutiveThrows) {
+    if (player != lastPlayer) {
       lastPlayer = player;
-      return respondWithAction(res, actionThrow);
+      consecutiveThrows = 1;
+      return respondWithAction(res, actionThrow, self, body.arena.dims);
     }
+    if (consecutiveThrows++ <= maxConsecutiveThrows) {
+      return respondWithAction(res, actionThrow, self, body.arena.dims);
+    }
+    if (nextMove = checkEscape(body)) return respondWithAction(res, nextMove, self, body.arena.dims);
   }
-  lastPlayer = "";
-  consecutiveThrows = 0;
 
   //find closest player around me
-  let nextMove = findClosest(body);
-  if (nextMove) return respondWithAction(res, nextMove);
+  if (nextMove = findClosest(body)) return respondWithAction(res, nextMove, self, body.arena.dims);
 
   //if on fire line, move out of the way
-  nextMove = checkEscape(body);
-  return respondWithAction(res, nextMove);
+  return respondWithAction(res, checkEscape(body), self, body.arena.dims);
 });
 
-function respondWithAction(res, nextMove) {
+function respondWithAction(res, nextMove, self, dims) {
   //random move
   if (!nextMove) nextMove = moves[Math.floor(Math.random() * moves.length)];
 
   //avoid spinning in circles
   if (lastMove == actionLeft && nextMove == actionRight || 
-      lastMove == actionRight && nextMove == actionLeft) nextMove = actionFoward;
+      lastMove == actionRight && nextMove == actionLeft) nextMove = actionForward;
+
+  if (nextMove == actionForward) {
+    //check if moving against walls, move around
+    switch (self.direction) {
+      //facing north
+      case "N": nextMove = (self.y > 0 ? actionForward : actionRight); break;
+      //facing south
+      case "S": nextMove = (self.y < dims[1]-1 ? actionForward : actionRight); break;
+      //facing west
+      case "W": nextMove = (self.x > 0 ? actionForward : actionRight); break;
+      //facing east
+      case "E": nextMove = (self.x < dims[0]-1 ? actionForward : actionRight); break;
+    }
+  }
   
-  lastMove = nextMove;
-  return res.send(nextMove);
+  return res.send(lastMove = nextMove);
 }
 
 //check if "I" can hit someone
@@ -109,7 +126,10 @@ function checkEscape(body) {
           throwY: row.y,
           dimsX: body.arena.dims[0],
           dimsY: body.arena.dims[1],
-        })) return actionFoward; //TODO: find correct move
+        })) {
+          //TODO: find best move
+          return actionForward;
+        }
   }
   return false;
 }
@@ -143,7 +163,7 @@ function findClosest(body, deep = 0) {
           throwY: selfY,
           dimsX: body.arena.dims[0],
           dimsY: body.arena.dims[1],
-        })) return actionFoward;
+        })) return actionForward;
   }
   //try 2x moves
   if (deep == 0 && !secondOption) {
@@ -152,7 +172,7 @@ function findClosest(body, deep = 0) {
       x: selfX,
       y: selfY
     });
-    secondOption = findClosest(cloned, 1);
+    if (findClosest(cloned, 1)) secondOption = actionForward;
   }
 
   //check right
@@ -184,7 +204,7 @@ function findClosest(body, deep = 0) {
       x: selfX,
       y: selfY
     });
-    secondOption = findClosest(cloned, 1);
+    if (findClosest(cloned, 1)) secondOption = actionRight;
   }
 
   //check left
@@ -216,7 +236,7 @@ function findClosest(body, deep = 0) {
       x: selfX,
       y: selfY
     });
-    secondOption = findClosest(cloned, 1);
+    if (findClosest(cloned, 1)) secondOption = actionLeft;
   }
 
   return secondOption;
