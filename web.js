@@ -115,10 +115,13 @@ function checkEscape(body) {
 }
 
 //check 3x possible actions F, L, R and success hit in 1 move
-function findClosest(body) {
+function findClosest(body, deep = 0) {
   const selfUrl = body._links.self.href;
   const rows = body.arena.state;
   const self = rows[selfUrl];
+
+  let secondOption = false;
+  let cloned = Object.assign({}, body);
 
   //check forward
   let nextDirection = self.direction,
@@ -141,6 +144,15 @@ function findClosest(body) {
           dimsX: body.arena.dims[0],
           dimsY: body.arena.dims[1],
         })) return actionFoward;
+  }
+  //try 2x moves
+  if (deep == 0 && !secondOption) {
+    Object.assign(cloned.arena.state[selfUrl], {
+      direction: nextDirection,
+      x: selfX,
+      y: selfY
+    });
+    secondOption = findClosest(cloned, 1);
   }
 
   //check right
@@ -165,6 +177,15 @@ function findClosest(body) {
           dimsY: body.arena.dims[1],
         })) return actionRight;
   }
+  //try 2x moves
+  if (deep == 0 && !secondOption) {
+    Object.assign(cloned.arena.state[selfUrl], {
+      direction: nextDirection,
+      x: selfX,
+      y: selfY
+    });
+    secondOption = findClosest(cloned, 1);
+  }
 
   //check left
   nextDirection = self.direction;
@@ -188,10 +209,17 @@ function findClosest(body) {
           dimsY: body.arena.dims[1],
         })) return actionLeft;
   }
+  //try 2x moves
+  if (deep == 0 && !secondOption) {
+    Object.assign(cloned.arena.state[selfUrl], {
+      direction: nextDirection,
+      x: selfX,
+      y: selfY
+    });
+    secondOption = findClosest(cloned, 1);
+  }
 
-  //TODO: try 2x moves
-
-  return false;
+  return secondOption;
 }
 
 app.listen(process.env.PORT || 8080, process.env.IP || "0.0.0.0", () => {
