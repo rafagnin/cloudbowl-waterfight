@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-const maxHitDistance = 2;
+const maxHitDistance = 3;
 const actionThrow = "T";
 const actionForward = "F";
 const actionLeft = "L";
@@ -23,6 +23,7 @@ app.post('/', async (req, res) => {
 
   if (player = checkThrow(body)) {
     //stop bulling
+    //TODO: review logic, not working as expected
     if (player != lastPlayer) {
       lastPlayer = player;
       consecutiveThrows = 1;
@@ -112,10 +113,10 @@ function checkThrow(body) {
 
 //check if player can hit another, takes direction and limits into consideration
 function checkHit(obj) {
-  let limitLeft = obj.throwX-maxHitDistance < 0 ? obj.throwX-maxHitDistance : 0,
-      limitRight = obj.throwX+maxHitDistance < obj.dimsX ? obj.throwX+maxHitDistance : obj.dimsX, //CHECK: should be -1
-      limitTop = obj.throwY-maxHitDistance < 0 ? obj.throwY-maxHitDistance : 0, 
-      limitBottom = obj.throwY+maxHitDistance < obj.dimsY ? obj.throwY+maxHitDistance : obj.dimsY; //CHECK: should be -1
+  let limitLeft = obj.throwX-maxHitDistance >= 0 ? obj.throwX-maxHitDistance : 0,
+      limitRight = obj.throwX+maxHitDistance < obj.dimsX-1 ? obj.throwX+maxHitDistance : obj.dimsX-1,
+      limitTop = obj.throwY-maxHitDistance >= 0 ? obj.throwY-maxHitDistance : 0, 
+      limitBottom = obj.throwY+maxHitDistance < obj.dimsY-1 ? obj.throwY+maxHitDistance : obj.dimsY-1;
 
   switch (obj.direction) {
     //facing north, same column, player above
