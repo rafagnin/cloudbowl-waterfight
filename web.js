@@ -31,6 +31,8 @@ app.post('/', async (req, res) => {
     if (consecutiveThrows++ <= maxConsecutiveThrows) {
       return respondWithAction(res, actionThrow, body);
     }
+    lastPlayer = "";
+    consecutiveThrows = 0;
     return respondWithAction(res, actionForward, body);
   }
 
