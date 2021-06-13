@@ -11,7 +11,7 @@ const actionLeft = "L";
 const actionRight = "R";
 const moves = [actionForward, actionLeft, actionRight];
 
-const maxConsecutiveThrows = 5;
+const maxConsecutiveThrows = 10;
 let consecutiveThrows = 0;
 let lastMove = "";
 let lastPlayer = "";
@@ -21,29 +21,27 @@ app.post('/', async (req, res) => {
   const body = req.body;
   // console.log(body);
 
-  const self = body.arena.state[body._links.self.href];
-
   if (player = checkThrow(body)) {
     //stop bulling
     if (player != lastPlayer) {
       lastPlayer = player;
       consecutiveThrows = 1;
-      return respondWithAction(res, actionThrow, self, body.arena.dims);
+      return respondWithAction(res, actionThrow, body);
     }
     if (consecutiveThrows++ <= maxConsecutiveThrows) {
-      return respondWithAction(res, actionThrow, self, body.arena.dims);
+      return respondWithAction(res, actionThrow, body);
     }
-    if (nextMove = checkEscape(body)) return respondWithAction(res, nextMove, self, body.arena.dims);
+    return respondWithAction(res, actionForward, body);
   }
 
   //find closest player around me
-  if (nextMove = findClosest(body)) return respondWithAction(res, nextMove, self, body.arena.dims);
+  if (nextMove = findClosest(body)) return respondWithAction(res, nextMove, body);
 
   //if on fire line, move out of the way
-  return respondWithAction(res, checkEscape(body), self, body.arena.dims);
+  return respondWithAction(res, checkEscape(body), body);
 });
 
-function respondWithAction(res, nextMove, self, dims) {
+function respondWithAction(res, nextMove, body) {
   //random move
   if (!nextMove) nextMove = moves[Math.floor(Math.random() * moves.length)];
 
@@ -53,15 +51,36 @@ function respondWithAction(res, nextMove, self, dims) {
 
   if (nextMove == actionForward) {
     //check if moving against walls, move around
+    let selfUrl = body._links.self.href;
+    let rows = body.arena.state;
+    const self = rows[selfUrl];
     switch (self.direction) {
       //facing north
       case "N": nextMove = (self.y > 0 ? actionForward : actionRight); break;
       //facing south
-      case "S": nextMove = (self.y < dims[1]-1 ? actionForward : actionRight); break;
+      case "S": nextMove = (self.y < body.arena.dims[1]-1 ? actionForward : actionRight); break;
       //facing west
       case "W": nextMove = (self.x > 0 ? actionForward : actionRight); break;
       //facing east
-      case "E": nextMove = (self.x < dims[0]-1 ? actionForward : actionRight); break;
+      case "E": nextMove = (self.x < body.arena.dims[0]-1 ? actionForward : actionRight); break;
+    }
+    
+    //TODO: check if moving against player, change direction
+    if (nextMove == actionForward) {
+      for (const url in rows) {
+        if (url == selfUrl) continue;
+        let row = rows[url];
+        switch (self.direction) {
+          //facing north
+          case "N": if (self.x == row.x && self.y-1 == row.y) nextMove = actionRight; break;
+          //facing south
+          case "S": if (self.x == row.x && self.y+1 == row.y) nextMove = actionRight; break;
+          //facing west
+          case "W": if (self.y == row.y && self.x-1 == row.x) nextMove = actionRight; break;
+          //facing east
+          case "E": if (self.y == row.y && self.x+1 == row.x) nextMove = actionRight; break;
+        }
+      }
     }
   }
   
