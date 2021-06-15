@@ -11,10 +11,7 @@ const actionLeft = "L";
 const actionRight = "R";
 const moves = [actionForward, actionLeft, actionRight];
 
-const maxConsecutiveThrows = 10;
-let consecutiveThrows = 0;
 let lastMove = "";
-let lastPlayer = "";
 let nextMove;
 
 app.post('/', async (req, res) => {
@@ -22,19 +19,7 @@ app.post('/', async (req, res) => {
   // console.log(body);
 
   if (player = checkThrow(body)) {
-    //stop bulling
-    //TODO: review logic, not working as expected
-    if (player != lastPlayer) {
-      lastPlayer = player;
-      consecutiveThrows = 1;
-      return respondWithAction(res, actionThrow, body);
-    }
-    if (consecutiveThrows++ <= maxConsecutiveThrows) {
-      return respondWithAction(res, actionThrow, body);
-    }
-    lastPlayer = "";
-    consecutiveThrows = 0;
-    return respondWithAction(res, actionForward, body);
+    return respondWithAction(res, actionThrow, body);
   }
 
   //find closest player around me
@@ -59,31 +44,13 @@ function respondWithAction(res, nextMove, body) {
     const self = rows[selfUrl];
     switch (self.direction) {
       //facing north
-      case "N": nextMove = (self.y > 0 ? actionForward : actionRight); break;
+      case "N": nextMove = (self.y > 0 ? actionForward : (self.x < body.arena.dims[0]-1 ? actionRight: actionLeft)); break;
       //facing south
-      case "S": nextMove = (self.y < body.arena.dims[1]-1 ? actionForward : actionRight); break;
+      case "S": nextMove = (self.y < body.arena.dims[1]-1 ? actionForward : (self.x > 0 ? actionRight : actionLeft)); break;
       //facing west
-      case "W": nextMove = (self.x > 0 ? actionForward : actionRight); break;
+      case "W": nextMove = (self.x > 0 ? actionForward : (self.y > 0 ? actionRight : actionLeft)); break;
       //facing east
-      case "E": nextMove = (self.x < body.arena.dims[0]-1 ? actionForward : actionRight); break;
-    }
-    
-    //TODO: check if moving against player, change direction
-    if (nextMove == actionForward) {
-      for (const url in rows) {
-        if (url == selfUrl) continue;
-        let row = rows[url];
-        switch (self.direction) {
-          //facing north
-          case "N": if (self.x == row.x && self.y-1 == row.y) nextMove = actionRight; break;
-          //facing south
-          case "S": if (self.x == row.x && self.y+1 == row.y) nextMove = actionRight; break;
-          //facing west
-          case "W": if (self.y == row.y && self.x-1 == row.x) nextMove = actionRight; break;
-          //facing east
-          case "E": if (self.y == row.y && self.x+1 == row.x) nextMove = actionRight; break;
-        }
-      }
+      case "E": nextMove = (self.x < body.arena.dims[0]-1 ? actionForward : (self.y < body.arena.dims[1]-1 ? actionRight : actionLeft)); break;
     }
   }
   
