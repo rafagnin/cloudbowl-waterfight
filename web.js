@@ -37,21 +37,44 @@ function respondWithAction(res, nextMove, body) {
   if (lastMove == actionLeft && nextMove == actionRight || 
       lastMove == actionRight && nextMove == actionLeft) nextMove = actionForward;
 
-  if (nextMove == actionForward) {
-    //check if moving against walls, move around
-    let selfUrl = body._links.self.href;
-    let rows = body.arena.state;
-    const self = rows[selfUrl];
-    switch (self.direction) {
-      //facing north
-      case "N": nextMove = (self.y > 0 ? actionForward : (self.x < body.arena.dims[0]-1 ? actionRight: actionLeft)); break;
-      //facing south
-      case "S": nextMove = (self.y < body.arena.dims[1]-1 ? actionForward : (self.x > 0 ? actionRight : actionLeft)); break;
-      //facing west
-      case "W": nextMove = (self.x > 0 ? actionForward : (self.y > 0 ? actionRight : actionLeft)); break;
-      //facing east
-      case "E": nextMove = (self.x < body.arena.dims[0]-1 ? actionForward : (self.y < body.arena.dims[1]-1 ? actionRight : actionLeft)); break;
-    }
+  //check if moving against walls, move around
+  let selfUrl = body._links.self.href;
+  let rows = body.arena.state;
+  const self = rows[selfUrl];
+
+  switch (self.direction) {
+    //facing north
+    case "N": 
+      if (self.y == 0) {
+        if (nextMove == actionForward) nextMove = actionRight;
+        if (nextMove == actionRight && self.x == body.arena.dims[0]-1) nextMove = actionLeft
+        else if (nextMove == actionLeft && self.x == 0) nextMove = actionRight
+      }
+      break;
+    //facing south
+    case "S": 
+      if (self.y == body.arena.dims[1]-1) {
+        if (nextMove == actionForward) nextMove = actionRight;
+        if (nextMove == actionRight && self.x == 0) nextMove = actionLeft
+        else if (nextMove == actionLeft && self.x == body.arena.dims[0]-1) nextMove = actionRight
+      }
+      break;
+    //facing west
+    case "W":
+      if (self.x == 0) {
+        if (nextMove == actionForward) nextMove = actionRight;
+        if (nextMove == actionRight && self.y == 0) nextMove = actionLeft
+        else if (nextMove == actionLeft && self.y == body.arena.dims[1]-1) nextMove = actionRight
+      }
+      break;
+    //facing east
+    case "E": 
+      if (self.x == body.arena.dims[0]-1) {
+        if (nextMove == actionForward) nextMove = actionRight;
+        if (nextMove == actionRight && self.y == body.arena.dims[1]-1) nextMove = actionLeft
+        else if (nextMove == actionLeft && self.y == 0) nextMove = actionRight
+      }
+      break;
   }
   
   return res.send(lastMove = nextMove);

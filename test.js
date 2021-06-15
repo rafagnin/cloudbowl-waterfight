@@ -187,3 +187,126 @@ describe('Move Tests', () => {
         expect(res.text).toBe("F");
     });
 });
+
+describe('Move Corners', () => {
+    it('north move left', async () => {
+        const res = await request.post('/').send({
+            "test": "north move left",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 2, "y": 0, "direction": "N"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("L");
+    });
+    it('north move right', async () => {
+        const res = await request.post('/').send({
+            "test": "north move right",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 0, "y": 0, "direction": "N"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("R");
+    });
+    it('south move left', async () => {
+        const res = await request.post('/').send({
+            "test": "south move left",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 0, "y": 1, "direction": "S"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("L");
+    });
+    it('south move right', async () => {
+        const res = await request.post('/').send({
+            "test": "south move right",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 2, "y": 1, "direction": "S"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("R");
+    });
+    it('west move left', async () => {
+        const res = await request.post('/').send({
+            "test": "west move left",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 0, "y": 0, "direction": "W"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("L");
+    });
+    it('west move right', async () => {
+        const res = await request.post('/').send({
+            "test": "west move right",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 0, "y": 1, "direction": "W"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("R");
+    });
+    it('east move left', async () => {
+        const res = await request.post('/').send({
+            "test": "east move left",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 2, "y": 1, "direction": "E"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("L");
+    });
+    it('east move right', async () => {
+        const res = await request.post('/').send({
+            "test": "east move right",
+            "_links": { "self": { "href": "https://MY_URL" } },
+            "arena": { 
+                "dims": [3,2], // width, height
+                "state": {
+                    "https://MY_URL": { "x": 2, "y": 0, "direction": "E"}
+                }
+            }
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.text).toBe("R");
+    });
+});
