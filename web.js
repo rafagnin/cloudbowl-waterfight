@@ -11,6 +11,8 @@ const actionLeft = "L";
 const actionRight = "R";
 const moves = [actionForward, actionLeft, actionRight];
 
+const maxConsecutiveThrows = 10;
+let lastPlayer = "";
 let lastMove = "";
 let nextMove;
 
@@ -19,7 +21,18 @@ app.post('/', async (req, res) => {
   // console.log(body);
 
   if (player = checkThrow(body)) {
-    return respondWithAction(res, actionThrow, body);
+    //limit throws against same player
+    if (player != lastPlayer) {
+      lastPlayer = player;
+      consecutiveThrows = 1;
+      return respondWithAction(res, actionThrow, body);
+    }
+    if (++consecutiveThrows <= maxConsecutiveThrows) {
+      return respondWithAction(res, actionThrow, body);
+    }
+    lastPlayer = "";
+    consecutiveThrows = 0;
+    return respondWithAction(res, false, body);
   }
 
   //find closest player around me
@@ -31,11 +44,12 @@ app.post('/', async (req, res) => {
 
 function respondWithAction(res, nextMove, body) {
   //random move
-  if (!nextMove) nextMove = moves[Math.floor(Math.random() * moves.length)];
-
-  //avoid spinning in circles
-  if (lastMove == actionLeft && nextMove == actionRight || 
-      lastMove == actionRight && nextMove == actionLeft) nextMove = actionForward;
+  if (!nextMove) {
+    nextMove = moves[Math.floor(Math.random() * moves.length)];
+    //avoid spinning in circles
+    if (lastMove == actionLeft && nextMove == actionRight ||
+        lastMove == actionRight && nextMove == actionLeft) nextMove = lastMove;
+  }
 
   //check if moving against walls, move around
   let selfUrl = body._links.self.href;
