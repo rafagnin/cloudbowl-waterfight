@@ -30,9 +30,6 @@ app.post('/', async (req, res) => {
     if (++consecutiveThrows <= maxConsecutiveThrows) {
       return respondWithAction(res, actionThrow, body);
     }
-    // lastPlayer = "";
-    // consecutiveThrows = 0;
-    return respondWithAction(res, false, body);
   }
 
   //find closest player around me
@@ -172,7 +169,8 @@ function findClosest(body, deep = 0) {
     case "E": if (selfX < body.arena.dims[0]-1) selfX++; break;
   }
   for (const url in rows) {
-    if (url == selfUrl) continue;
+    if (url == selfUrl || 
+        url == lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
@@ -204,7 +202,8 @@ function findClosest(body, deep = 0) {
     case "W": nextDirection = "N"; break;
   }
   for (const url in rows) {
-    if (url == selfUrl) continue;
+    if (url == selfUrl || 
+        url == lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
@@ -236,7 +235,8 @@ function findClosest(body, deep = 0) {
     case "E": nextDirection = "N"; break;
   }
   for (const url in rows) {
-    if (url == selfUrl) continue;
+    if (url == selfUrl || 
+        url == lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
