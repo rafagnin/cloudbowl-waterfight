@@ -33,7 +33,7 @@ app.post('/', async (req, res) => {
 
   let nextMove;
   if (nextMove = findClosest(body)) return respondWithAction(res, nextMove, body);
-  if (nextMove = checkEscape(body)) return respondWithAction(res, nextMove, body);
+  //TODO: if (nextMove = checkEscape(body)) return respondWithAction(res, nextMove, body);
 
   //if on fire line, move out of the way
   return respondWithAction(res, checkRandom(body), body);
