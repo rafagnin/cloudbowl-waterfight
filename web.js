@@ -16,17 +16,17 @@ let cache = {}
 app.post('/', async (req, res) => {
   const body = req.body;
   let session = cache[body._links.self.href];
-  if (typeof session === 'undefined') session = cache[body._links.self.href] = {lastPlayer: "", lastMove: ""};
+  if (typeof session === 'undefined') session = cache[body._links.self.href] = {lastMove: "", lastPlayer: "", throws: 0};
   // console.log(body);
 
   if (player = checkThrow(body)) {
     //limit throws against same player
     if (player != session.lastPlayer) {
       session.lastPlayer = player;
-      consecutiveThrows = 1;
+      session.throws = 1;
       return respondWithAction(res, actionThrow, body);
     }
-    if (++consecutiveThrows <= maxConsecutiveThrows) {
+    if (++session.throws <= maxConsecutiveThrows) {
       return respondWithAction(res, actionThrow, body);
     }
   }
@@ -173,7 +173,7 @@ function findClosest(body, deep = 0) {
   }
   for (const url in rows) {
     if (url == selfUrl || 
-        url == session.lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
+        url == session.lastPlayer && session.throws >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
@@ -206,7 +206,7 @@ function findClosest(body, deep = 0) {
   }
   for (const url in rows) {
     if (url == selfUrl || 
-        url == session.lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
+        url == session.lastPlayer && session.throws >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
@@ -239,7 +239,7 @@ function findClosest(body, deep = 0) {
   }
   for (const url in rows) {
     if (url == selfUrl || 
-        url == session.lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
+        url == session.lastPlayer && session.throws >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
