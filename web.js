@@ -31,24 +31,68 @@ app.post('/', async (req, res) => {
     }
   }
 
-  //find closest player around me
   let nextMove;
   if (nextMove = findClosest(body)) return respondWithAction(res, nextMove, body);
+  if (nextMove = checkEscape(body)) return respondWithAction(res, nextMove, body);
 
   //if on fire line, move out of the way
-  return respondWithAction(res, checkEscape(body), body);
+  return respondWithAction(res, checkRandom(body), body);
 });
 
 function respondWithAction(res, nextMove, body) {
   let session = cache[body._links.self.href];
+  return res.send(session.lastMove = nextMove);
+}
+
+//check if "I" can hit someone
+function checkThrow(body) {
+  const selfUrl = body._links.self.href;
+  const rows = body.arena.state;
+  const self = rows[selfUrl];
+
+  for (const url in rows) {
+    if (url == selfUrl) continue;
+    if (checkHit({
+          direction: self.direction,
+          hitX: rows[url].x,
+          hitY: rows[url].y,
+          throwX: self.x,
+          throwY: self.y,
+          dimsX: body.arena.dims[0],
+          dimsY: body.arena.dims[1],
+        })) return url;
+  }
+  return false;
+}
+
+//check if player can hit another, takes direction and limits into consideration
+function checkHit(obj) {
+  let limitLeft = obj.throwX-maxHitDistance >= 0 ? obj.throwX-maxHitDistance : 0,
+      limitRight = obj.throwX+maxHitDistance < obj.dimsX-1 ? obj.throwX+maxHitDistance : obj.dimsX-1,
+      limitTop = obj.throwY-maxHitDistance >= 0 ? obj.throwY-maxHitDistance : 0, 
+      limitBottom = obj.throwY+maxHitDistance < obj.dimsY-1 ? obj.throwY+maxHitDistance : obj.dimsY-1;
+
+  switch (obj.direction) {
+    //facing north, same column, player above
+    case "N": if (obj.hitX == obj.throwX && obj.hitY >= limitTop && obj.hitY <= obj.throwY) return true; break;
+    //facing south, same column, player below
+    case "S": if (obj.hitX == obj.throwX && obj.hitY >= obj.throwY && obj.hitY <= limitBottom) return true; break;
+    //facing west, same row, player left
+    case "W": if (obj.hitY == obj.throwY && obj.hitX >= limitLeft && obj.hitX <= obj.throwX) return true; break;
+    //facing east, same row, player right
+    case "E": if (obj.hitY == obj.throwY && obj.hitX >= obj.throwX && obj.hitX <= limitRight) return true; break;
+  }
+  return false;
+}
+
+function checkRandom(body) {
+  let session = cache[body._links.self.href];
 
   //random move
-  if (!nextMove) {
-    nextMove = moves[Math.floor(Math.random() * moves.length)];
-    //avoid spinning in circles
-    if (session.lastMove == actionLeft && nextMove == actionRight ||
-      session.lastMove == actionRight && nextMove == actionLeft) nextMove = session.lastMove;
-  }
+  let nextMove = moves[Math.floor(Math.random() * moves.length)];
+  //avoid spinning in circles
+  if (session.lastMove == actionLeft && nextMove == actionRight ||
+    session.lastMove == actionRight && nextMove == actionLeft) nextMove = actionForward;
 
   //check if moving against walls, move around
   let selfUrl = body._links.self.href;
@@ -101,49 +145,8 @@ function respondWithAction(res, nextMove, body) {
       else if (nextMove == actionLeft && self.y == 0) nextMove = actionRight
       break;
   }
-  
-  return res.send(session.lastMove = nextMove);
-}
 
-//check if "I" can hit someone
-function checkThrow(body) {
-  const selfUrl = body._links.self.href;
-  const rows = body.arena.state;
-  const self = rows[selfUrl];
-
-  for (const url in rows) {
-    if (url == selfUrl) continue;
-    if (checkHit({
-          direction: self.direction,
-          hitX: rows[url].x,
-          hitY: rows[url].y,
-          throwX: self.x,
-          throwY: self.y,
-          dimsX: body.arena.dims[0],
-          dimsY: body.arena.dims[1],
-        })) return url;
-  }
-  return false;
-}
-
-//check if player can hit another, takes direction and limits into consideration
-function checkHit(obj) {
-  let limitLeft = obj.throwX-maxHitDistance >= 0 ? obj.throwX-maxHitDistance : 0,
-      limitRight = obj.throwX+maxHitDistance < obj.dimsX-1 ? obj.throwX+maxHitDistance : obj.dimsX-1,
-      limitTop = obj.throwY-maxHitDistance >= 0 ? obj.throwY-maxHitDistance : 0, 
-      limitBottom = obj.throwY+maxHitDistance < obj.dimsY-1 ? obj.throwY+maxHitDistance : obj.dimsY-1;
-
-  switch (obj.direction) {
-    //facing north, same column, player above
-    case "N": if (obj.hitX == obj.throwX && obj.hitY >= limitTop && obj.hitY <= obj.throwY) return true; break;
-    //facing south, same column, player below
-    case "S": if (obj.hitX == obj.throwX && obj.hitY >= obj.throwY && obj.hitY <= limitBottom) return true; break;
-    //facing west, same row, player left
-    case "W": if (obj.hitY == obj.throwY && obj.hitX >= limitLeft && obj.hitX <= obj.throwX) return true; break;
-    //facing east, same row, player right
-    case "E": if (obj.hitY == obj.throwY && obj.hitX >= obj.throwX && obj.hitX <= limitRight) return true; break;
-  }
-  return false;
+  return nextMove;
 }
 
 //check if "someone" can hit me
