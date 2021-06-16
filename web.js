@@ -10,20 +10,19 @@ const actionForward = "F";
 const actionLeft = "L";
 const actionRight = "R";
 const moves = [actionForward, actionLeft, actionRight];
-
 const maxConsecutiveThrows = 10;
-let lastPlayer = "";
-let lastMove = "";
-let nextMove;
+let cache = {}
 
 app.post('/', async (req, res) => {
   const body = req.body;
+  let session = cache[body._links.self.href];
+  if (typeof session === 'undefined') session = cache[body._links.self.href] = {lastPlayer: "", lastMove: ""};
   // console.log(body);
 
   if (player = checkThrow(body)) {
     //limit throws against same player
-    if (player != lastPlayer) {
-      lastPlayer = player;
+    if (player != session.lastPlayer) {
+      session.lastPlayer = player;
       consecutiveThrows = 1;
       return respondWithAction(res, actionThrow, body);
     }
@@ -33,6 +32,7 @@ app.post('/', async (req, res) => {
   }
 
   //find closest player around me
+  let nextMove;
   if (nextMove = findClosest(body)) return respondWithAction(res, nextMove, body);
 
   //if on fire line, move out of the way
@@ -40,12 +40,14 @@ app.post('/', async (req, res) => {
 });
 
 function respondWithAction(res, nextMove, body) {
+  let session = cache[body._links.self.href];
+
   //random move
   if (!nextMove) {
     nextMove = moves[Math.floor(Math.random() * moves.length)];
     //avoid spinning in circles
-    if (lastMove == actionLeft && nextMove == actionRight ||
-        lastMove == actionRight && nextMove == actionLeft) nextMove = lastMove;
+    if (session.lastMove == actionLeft && nextMove == actionRight ||
+      session.lastMove == actionRight && nextMove == actionLeft) nextMove = session.lastMove;
   }
 
   //check if moving against walls, move around
@@ -80,7 +82,7 @@ function respondWithAction(res, nextMove, body) {
       break;
   }
   
-  return res.send(lastMove = nextMove);
+  return res.send(session.lastMove = nextMove);
 }
 
 //check if "I" can hit someone
@@ -157,6 +159,7 @@ function findClosest(body, deep = 0) {
 
   let secondOption = false;
   let cloned = JSON.parse(JSON.stringify(body));
+  let session = cache[body._links.self.href];
 
   //check forward
   let nextDirection = self.direction,
@@ -170,7 +173,7 @@ function findClosest(body, deep = 0) {
   }
   for (const url in rows) {
     if (url == selfUrl || 
-        url == lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
+        url == session.lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
@@ -203,7 +206,7 @@ function findClosest(body, deep = 0) {
   }
   for (const url in rows) {
     if (url == selfUrl || 
-        url == lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
+        url == session.lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
@@ -236,7 +239,7 @@ function findClosest(body, deep = 0) {
   }
   for (const url in rows) {
     if (url == selfUrl || 
-        url == lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
+        url == session.lastPlayer && consecutiveThrows >= maxConsecutiveThrows) continue;
     if (checkHit({
           direction: nextDirection,
           hitX: rows[url].x,
