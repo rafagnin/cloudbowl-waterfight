@@ -58,25 +58,45 @@ function respondWithAction(res, nextMove, body) {
   switch (self.direction) {
     //facing north
     case "N": 
-      if (self.y == 0 && nextMove == actionForward) nextMove = actionRight;
+      if (nextMove == actionForward) {
+        if (self.y == 0) nextMove = actionRight;
+        else for (url in rows) {
+            if (rows[url].x == self.x && rows[url].y == self.y-1) { nextMove = actionRight; break; }
+        }
+      }
       if (nextMove == actionRight && self.x == body.arena.dims[0]-1) nextMove = actionLeft
       else if (nextMove == actionLeft && self.x == 0) nextMove = actionRight
       break;
     //facing south
     case "S": 
-      if (self.y == body.arena.dims[1]-1 && nextMove == actionForward) nextMove = actionRight;
+      if (nextMove == actionForward) {
+        if (self.y == body.arena.dims[1]-1) nextMove = actionRight;
+        else for (url in rows) {
+            if (rows[url].x == self.x && rows[url].y == self.y+1) { nextMove = actionRight; break; }
+        }
+      }
       if (nextMove == actionRight && self.x == 0) nextMove = actionLeft
       else if (nextMove == actionLeft && self.x == body.arena.dims[0]-1) nextMove = actionRight
       break;
     //facing west
     case "W":
-      if (self.x == 0 && nextMove == actionForward) nextMove = actionRight;
+      if (nextMove == actionForward) {
+        if (self.x == 0) nextMove = actionRight;
+        else for (url in rows) {
+            if (rows[url].x == self.x-1 && rows[url].y == self.y) { nextMove = actionRight; break; }
+        }
+      }
       if (nextMove == actionRight && self.y == 0) nextMove = actionLeft
       else if (nextMove == actionLeft && self.y == body.arena.dims[1]-1) nextMove = actionRight
       break;
     //facing east
     case "E": 
-      if (self.x == body.arena.dims[0]-1 && nextMove == actionForward) nextMove = actionRight;
+      if (nextMove == actionForward) {
+        if (self.x == body.arena.dims[0]-1) nextMove = actionRight;
+        else for (url in rows) {
+            if (rows[url].x == self.x+1 && rows[url].y == self.y) { nextMove = actionRight; break; }
+        }
+      }
       if (nextMove == actionRight && self.y == body.arena.dims[1]-1) nextMove = actionLeft
       else if (nextMove == actionLeft && self.y == 0) nextMove = actionRight
       break;
